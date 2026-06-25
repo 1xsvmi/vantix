@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" width="240" height="48">
+  <defs>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F5FF"/>
+      <stop offset="100%" stop-color="#7B2FFF"/>
+    </linearGradient>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Shield icon (mini) -->
+  <path d="M24 4 L42 11 L42 28 Q42 40 24 46 Q6 40 6 28 L6 11 Z"
+        fill="url(#g2)" filter="url(#glow2)"/>
+  <text x="24" y="33" font-family="Arial Black,sans-serif" font-size="20"
+        font-weight="900" text-anchor="middle" fill="white">V</text>
+  <!-- VANTIX text -->
+  <text x="56" y="34" font-family="Courier New,monospace" font-size="22"
+        font-weight="700" fill="#00F5FF" letter-spacing="3" filter="url(#glow2)">VANTIX</text>
+</svg>

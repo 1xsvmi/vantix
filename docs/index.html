@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VANTIX – Cybersecurity Desktop Monitor</title>
+<style>
+  :root{
+    --cyan:#00F5FF; --purple:#7B2FFF; --bg:#0a0a10;
+    --card:#13131f; --border:#1e1e30; --text:#e0e0f0;
+    --muted:#7a7a9a; --green:#00FF88; --warn:#FFB300; --red:#FF3232;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+       font-size:16px;line-height:1.6;overflow-x:hidden}
+  a{color:var(--cyan);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* canvas */
+  #hero-canvas{position:absolute;inset:0;z-index:0;pointer-events:none}
+
+  /* NAV */
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;
+      background:rgba(10,10,16,0.85);backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 48px;height:60px}
+  .nav-logo{display:flex;align-items:center;gap:10px;font-size:18px;
+             font-weight:800;letter-spacing:3px;color:var(--cyan)}
+  .nav-logo svg{filter:drop-shadow(0 0 6px var(--cyan))}
+  .nav-links{display:flex;gap:32px;list-style:none}
+  .nav-links a{color:var(--muted);font-size:14px;font-weight:500;transition:.2s}
+  .nav-links a:hover{color:var(--cyan);text-decoration:none}
+
+  /* HERO */
+  .hero{position:relative;min-height:100vh;display:flex;align-items:center;
+        justify-content:center;text-align:center;overflow:hidden;padding:80px 24px}
+  .hero-content{position:relative;z-index:1;max-width:800px}
+  .badge{display:inline-block;background:rgba(0,245,255,.1);
+         border:1px solid rgba(0,245,255,.3);border-radius:20px;
+         color:var(--cyan);font-size:12px;font-weight:600;
+         padding:4px 16px;letter-spacing:1px;margin-bottom:24px}
+  .hero h1{font-size:clamp(48px,8vw,96px);font-weight:900;line-height:1.0;
+            letter-spacing:-2px;margin-bottom:16px;
+            background:linear-gradient(135deg,var(--cyan),var(--purple));
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p{font-size:clamp(16px,2vw,20px);color:var(--muted);max-width:560px;
+           margin:0 auto 40px}
+  .btn-group{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;
+       border-radius:8px;font-weight:700;font-size:15px;transition:.2s;cursor:pointer;
+       text-decoration:none}
+  .btn-primary{background:linear-gradient(135deg,var(--cyan),var(--purple));
+               color:#000;border:none}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,245,255,.3);
+                      text-decoration:none;color:#000}
+  .btn-secondary{background:transparent;color:var(--cyan);
+                 border:1px solid rgba(0,245,255,.4)}
+  .btn-secondary:hover{background:rgba(0,245,255,.08);text-decoration:none}
+
+  /* SECTIONS */
+  section{padding:96px 24px}
+  .container{max-width:1200px;margin:0 auto}
+  h2{font-size:clamp(28px,4vw,42px);font-weight:800;margin-bottom:12px;
+     background:linear-gradient(90deg,var(--cyan),var(--purple));
+     -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .section-sub{color:var(--muted);font-size:16px;margin-bottom:48px}
+
+  /* FEATURE GRID */
+  .feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:24px}
+  .feat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+             padding:28px;transition:.25s;position:relative;overflow:hidden}
+  .feat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+                     background:linear-gradient(90deg,var(--cyan),var(--purple));opacity:0;transition:.25s}
+  .feat-card:hover{border-color:rgba(0,245,255,.3);transform:translateY(-4px);
+                   box-shadow:0 12px 40px rgba(0,245,255,.08)}
+  .feat-card:hover::before{opacity:1}
+  .feat-icon{font-size:32px;margin-bottom:16px}
+  .feat-card h3{font-size:18px;font-weight:700;color:var(--cyan);margin-bottom:8px}
+  .feat-card p{color:var(--muted);font-size:14px;line-height:1.6}
+
+  /* DOWNLOAD */
+  .dl-section{background:var(--card);border:1px solid var(--border);border-radius:16px;
+              padding:48px;text-align:center}
+  .dl-btns{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:32px}
+  .dl-btn{display:flex;align-items:center;gap:12px;padding:16px 32px;
+          border-radius:10px;font-weight:700;font-size:16px;
+          border:1px solid var(--border);background:var(--bg);
+          color:var(--text);transition:.2s;text-decoration:none}
+  .dl-btn:hover{border-color:var(--cyan);color:var(--cyan);
+                background:rgba(0,245,255,.05);text-decoration:none;
+                transform:translateY(-2px)}
+  .dl-btn .os-icon{font-size:24px}
+  .dl-btn .dl-info small{display:block;color:var(--muted);font-size:12px;font-weight:400}
+
+  /* REQUIREMENTS TABLE */
+  table{width:100%;border-collapse:collapse;background:var(--card);
+        border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  thead tr{background:#0d0d1a}
+  th,td{padding:12px 20px;text-align:left;border-bottom:1px solid var(--border);font-size:14px}
+  th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase}
+  tr:last-child td{border-bottom:none}
+  .chip{display:inline-block;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600}
+  .chip-green{background:rgba(0,255,136,.15);color:var(--green)}
+  .chip-cyan{background:rgba(0,245,255,.15);color:var(--cyan)}
+
+  /* FOOTER */
+  footer{border-top:1px solid var(--border);padding:40px 24px;text-align:center;color:var(--muted)}
+  footer .footer-links{display:flex;gap:24px;justify-content:center;margin-top:16px}
+  footer a{color:var(--muted);font-size:14px;transition:.2s}
+  footer a:hover{color:var(--cyan);text-decoration:none}
+
+  @media(max-width:768px){
+    nav{padding:0 24px}
+    .nav-links{display:none}
+    section{padding:64px 16px}
+    .dl-btns{flex-direction:column;align-items:center}
+  }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">
+    <svg width="32" height="32" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="ng" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#00F5FF"/><stop offset="100%" stop-color="#7B2FFF"/>
+        </linearGradient>
+      </defs>
+      <path d="M100 12 L170 42 L170 110 Q170 160 100 188 Q30 160 30 110 L30 42 Z" fill="url(#ng)"/>
+      <text x="100" y="130" font-family="Arial Black" font-size="80" font-weight="900"
+            text-anchor="middle" fill="white">V</text>
+    </svg>
+    VANTIX
+  </div>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#download">Download</a></li>
+    <li><a href="#requirements">Requirements</a></li>
+    <li><a href="https://github.com/yourusername/vantix" target="_blank" rel="noopener">GitHub</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-content">
+    <div class="badge">⬡ OPEN SOURCE · MIT LICENSE</div>
+    <h1>VANTIX</h1>
+    <p>Real-time cybersecurity monitoring for Windows and Linux. Process intelligence, network IDS, threat detection — in one sleek dark desktop app.</p>
+    <div class="btn-group">
+      <a href="#download" class="btn btn-primary">⬇ Download Free</a>
+      <a href="https://github.com/yourusername/vantix" target="_blank" rel="noopener" class="btn btn-secondary">★ GitHub</a>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <h2>Everything You Need</h2>
+    <p class="section-sub">Six fully integrated security modules — all real data, no mock values.</p>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon">⚡</div>
+        <h3>Overview Dashboard</h3>
+        <p>Live CPU and RAM charts updating every second. Network upload/download speed. Active process and connection counters at a glance.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⚙</div>
+        <h3>Process Intelligence</h3>
+        <p>All running processes with PID, CPU%, memory, user, and risk level. Auto-refresh every 2 s. Color-coded SAFE / SUSPICIOUS / DANGEROUS. Double-click to kill.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🌐</div>
+        <h3>Network IDS</h3>
+        <p>Every active TCP/UDP connection with local/remote addresses, status, and process name. Flags suspicious ports like 4444, 1337, 31337 automatically.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">💾</div>
+        <h3>Storage Intelligence</h3>
+        <p>All disk partitions with visual usage bars — green below 70%, orange below 90%, red above 90%. Real-time read/write speed monitor.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🎯</div>
+        <h3>Threat Intelligence</h3>
+        <p>FireHOL Level-1 blocklist fetched from GitHub and cached locally for 24 hours. Custom IP blocklist. Export threat reports as JSON or CSV.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔗</div>
+        <h3>Risk Correlation Engine</h3>
+        <p>SQLite event database logging all security events with timestamps. 24-hour risk graph. Overall threat score calculated from all six modules. Auto-save every 5 minutes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOWNLOAD -->
+<section id="download">
+  <div class="container">
+    <div class="dl-section">
+      <h2>Download VANTIX</h2>
+      <p style="color:var(--muted);margin-top:8px">Zero dependencies. Just download and run.</p>
+      <div class="dl-btns">
+        <a href="https://github.com/yourusername/vantix/releases/latest/download/Vantix.exe"
+           class="dl-btn" target="_blank" rel="noopener">
+          <span class="os-icon">🪟</span>
+          <span>
+            Windows 10 / 11<br/>
+            <small>Vantix.exe · Standalone</small>
+          </span>
+        </a>
+        <a href="https://github.com/yourusername/vantix/releases/latest/download/Vantix"
+           class="dl-btn" target="_blank" rel="noopener">
+          <span class="os-icon">🐧</span>
+          <span>
+            Linux (Ubuntu / Fedora)<br/>
+            <small>Vantix · Standalone Binary</small>
+          </span>
+        </a>
+        <a href="https://github.com/yourusername/vantix" class="dl-btn"
+           target="_blank" rel="noopener">
+          <span class="os-icon">💻</span>
+          <span>
+            Run from Source<br/>
+            <small>Python 3.10+ required</small>
+          </span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REQUIREMENTS -->
+<section id="requirements">
+  <div class="container">
+    <h2>System Requirements</h2>
+    <p class="section-sub">Lightweight — runs on any modern desktop.</p>
+    <table>
+      <thead>
+        <tr><th>Component</th><th>Minimum</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Operating System</td><td>Windows 10/11 · Ubuntu 20.04+ · Fedora 36+</td>
+            <td><span class="chip chip-green">✓ Supported</span></td></tr>
+        <tr><td>Python (source)</td><td>Python 3.10+</td>
+            <td><span class="chip chip-cyan">Source only</span></td></tr>
+        <tr><td>RAM</td><td>256 MB</td>
+            <td><span class="chip chip-green">✓ Low footprint</span></td></tr>
+        <tr><td>Disk Space</td><td>200 MB</td>
+            <td><span class="chip chip-green">✓ Minimal</span></td></tr>
+        <tr><td>Network</td><td>Optional (FireHOL updates)</td>
+            <td><span class="chip chip-cyan">Offline-capable</span></td></tr>
+        <tr><td>Privileges</td><td>Standard user (admin for process kill)</td>
+            <td><span class="chip chip-green">✓ No root required</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <p>⬡ VANTIX – Open Source Cybersecurity Monitor · MIT License</p>
+  <div class="footer-links">
+    <a href="https://github.com/yourusername/vantix" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/yourusername/vantix/releases" target="_blank" rel="noopener">Releases</a>
+    <a href="https://github.com/yourusername/vantix/issues" target="_blank" rel="noopener">Issues</a>
+    <a href="mailto:security@vantix.app">Contact</a>
+  </div>
+</footer>
+
+<script>
+// Three.js particle network background
+(function(){
+  const canvas = document.getElementById('hero-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize(){
+    W = canvas.width  = canvas.parentElement.offsetWidth;
+    H = canvas.height = canvas.parentElement.offsetHeight;
+  }
+
+  function Particle(){
+    this.x  = Math.random()*W;
+    this.y  = Math.random()*H;
+    this.vx = (Math.random()-.5)*0.4;
+    this.vy = (Math.random()-.5)*0.4;
+    this.r  = Math.random()*2+1;
+    this.a  = Math.random()*.6+.2;
+  }
+
+  function init(){
+    resize();
+    particles = Array.from({length:80}, ()=>new Particle());
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p=>{
+      p.x += p.vx; p.y += p.vy;
+      if(p.x<0||p.x>W) p.vx*=-1;
+      if(p.y<0||p.y>H) p.vy*=-1;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle = `rgba(0,245,255,${p.a})`;
+      ctx.fill();
+    });
+    // Lines between close particles
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x;
+        const dy=particles[i].y-particles[j].y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<120){
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x,particles[i].y);
+          ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.strokeStyle=`rgba(123,47,255,${(1-dist/120)*.25})`;
+          ctx.lineWidth=0.8;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  init(); draw();
+})();
+
+// Scroll reveal
+const reveals = document.querySelectorAll('.feat-card,.dl-section,table');
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.style.opacity='1';
+      e.target.style.transform='translateY(0)';
+    }
+  });
+},{threshold:.1});
+reveals.forEach(el=>{
+  el.style.opacity='0';
+  el.style.transform='translateY(24px)';
+  el.style.transition='opacity .5s ease, transform .5s ease';
+  io.observe(el);
+});
+</script>
+</body>
+</html>

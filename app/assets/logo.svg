@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F5FF"/>
+      <stop offset="100%" stop-color="#7B2FFF"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- grid pattern -->
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(0,245,255,0.12)" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <!-- Shield body -->
+  <path d="M100 12 L170 42 L170 110 Q170 160 100 188 Q30 160 30 110 L30 42 Z"
+        fill="url(#g1)" filter="url(#glow)" opacity="0.95"/>
+  <!-- Grid overlay -->
+  <path d="M100 12 L170 42 L170 110 Q170 160 100 188 Q30 160 30 110 L30 42 Z"
+        fill="url(#grid)" opacity="0.4"/>
+  <!-- Shield border -->
+  <path d="M100 12 L170 42 L170 110 Q170 160 100 188 Q30 160 30 110 L30 42 Z"
+        fill="none" stroke="#00F5FF" stroke-width="2" opacity="0.6"/>
+  <!-- V letter -->
+  <text x="100" y="130" font-family="Arial Black,sans-serif" font-size="80"
+        font-weight="900" text-anchor="middle" fill="white" filter="url(#glow)"
+        letter-spacing="-4">V</text>
+</svg>
